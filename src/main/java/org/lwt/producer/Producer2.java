@@ -59,8 +59,18 @@ public class Producer2 {
 		for(int i = 0; i < byteList.size(); i++) {
 			Map<String, Object> map = new HashMap<>();
 			String md5 = TestTools.getMD5String(byteList.get(i));
+			map.put("date", System.currentTimeMillis()+1);
+			map.put("packid", fileMD5);	// 用文件的md5值作为包的id值
+			map.put("packcount", byteList.size());	//本次上传的整个包被分成多少个小包
+			if(i==0) {
+				map.put("flag", 0);
+			}else if(i == byteList.size()-1) {
+				map.put("flag", 1);
+			}else {
+				map.put("flag", 2);
+			}
 			map.put("md5", md5);		// 当前包数据的md5
-			map.put("packno", i);	// 当前包序号
+			map.put("packnum", i);	// 当前包序号
 			map.put("packcount", byteList.size());
 			//map.put("data", byteList.get(i));
 			map.put("data", new String(byteList.get(i),"utf-8"));

@@ -83,7 +83,19 @@ public class Customer {
                     /*System.out.println("是否时list");
                     System.out.println((map.get("data") instanceof List));*/
                     byte[] bytes = ((String) map.get("data")).getBytes();
-                    System.out.println(bytes);
+                    String recMd5 = "";
+                    try {
+                    	recMd5 = TestTools.getMD5String(bytes);
+					} catch (Exception e) {
+						
+						e.printStackTrace();
+					}
+                    System.out.print(map.get("md5")+"=================>");
+                    System.out.println(recMd5);
+                    if(map.get("md5").equals(recMd5)) {
+                    	System.out.println("MD5校验通过。。。");
+                    }
+                    //System.out.println(bytes);
                     String path = FileUtils.class.getClassLoader().getResource("text.txt").getPath();
             		path = path.substring(1, path.length());
             		int i = 10;
