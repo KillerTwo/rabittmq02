@@ -73,6 +73,7 @@ public class Customer {
                     //String md5 = TestTools.getStringMD5(new String(map.get("data"),"utf-8"));
                     //String data = "";
                     System.out.println(map);
+                    
 					
                     /*System.out.println(data);
                     data = data.replaceAll("[\\[\\]]", "");
