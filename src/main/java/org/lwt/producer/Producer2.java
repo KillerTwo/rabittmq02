@@ -1,6 +1,7 @@
 package org.lwt.producer;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -52,19 +53,30 @@ public class Producer2 {
 		
 		String fileMD5 = TestTools.getFileMD5(file);	//获取待上传文件的MD5
 		List<byte[]> byteList = FileUtils.splitDemo(file);	//将文件拆分（每份为1024bit）
+		/*for(byte[] bytes: byteList){
+			System.out.println(new String(bytes,"utf-8"));
+		}*/
 		for(int i = 0; i < byteList.size(); i++) {
 			Map<String, Object> map = new HashMap<>();
 			String md5 = TestTools.getMD5String(byteList.get(i));
 			map.put("md5", md5);		// 当前包数据的md5
 			map.put("packno", i);	// 当前包序号
 			map.put("packcount", byteList.size());
-			map.put("data", byteList.get(i));
+			//map.put("data", byteList.get(i));
+			map.put("data", new String(byteList.get(i),"utf-8"));
 			map.put("allMD5", fileMD5);
 			Gson gson = new Gson();
 			String data = gson.toJson(map);
 			// 分开发送每一部分的数据
 			channel.basicPublish(exchangeName, routingKey, null, data.getBytes());
 		}
+		/*
+		FileInputStream in = new FileInputStream(file);
+		int len;
+		byte[] bytes = new byte[1024];
+		while((len=in.read(bytes))!=-1) {
+			channel.basicPublish(exchangeName, routingKey, null, bytes);
+		}*/
 		
 		
 		channel.close();

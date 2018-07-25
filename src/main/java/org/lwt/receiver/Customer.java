@@ -1,11 +1,18 @@
 package org.lwt.receiver;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.CharacterIterator;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import org.lwt.tools.FileUtils;
 import org.lwt.tools.TestTools;
 
 import com.google.gson.Gson;
@@ -56,29 +63,55 @@ public class Customer {
                                            byte[] body) throws IOException {
                     String routingKey = envelope.getRoutingKey();
                     String contentType = properties.getContentType();
-                    System.out.println("消费的路由键：" + routingKey);
-                    System.out.println("消费的内容类型：" + contentType);
-                    long deliveryTag = envelope.getDeliveryTag();
+                    /*System.out.println("消费的路由键：" + routingKey);
+                    System.out.println("消费的内容类型：" + contentType);*/
+                    //long deliveryTag = envelope.getDeliveryTag();
                     //确认消息
                     //channel.basicAck(deliveryTag, false);
                     System.out.println("消费的消息体内容：");
                     
                     String bodyStr = new String(body, "UTF-8");		//接收到的消息
-                    //System.out.println(bodyStr);
+                    System.out.println(bodyStr);
                     System.out.println("------------------------");
+                    
+                    
                     
                     Map<String,Object> map = new HashMap<>();
                     map = gson.fromJson(bodyStr, new com.google.gson.reflect.TypeToken<Map<String,Object>>(){}.getType());
-                    System.out.println(map.get("data"));
+                    //Byte[] bytes = (Byte[])((List)map.get("data")).toArray();
+                    //System.out.println(bytes);
+                    /*System.out.println("是否时list");
+                    System.out.println((map.get("data") instanceof List));*/
+                    byte[] bytes = ((String) map.get("data")).getBytes();
+                    System.out.println(bytes);
+                    String path = FileUtils.class.getClassLoader().getResource("text.txt").getPath();
+            		path = path.substring(1, path.length());
+            		int i = 10;
+            		File file = new File(path+i*10+".txt");
+            		FileOutputStream out = new FileOutputStream(file);
+            		out.write(bytes);
+            		
+                    i++;
+                    //System.out.println(map.get("data"));
                     //String md5 = TestTools.getStringMD5(new String(map.get("data"),"utf-8"));
-                    //String data = "";
-                    System.out.println(map);
-                    
-					
-                    /*System.out.println(data);
-                    data = data.replaceAll("[\\[\\]]", "");
-                    System.out.println(data);
-                    byte[] bytes = data.getBytes();*/
+                   /* try {
+						String data = (String) map.get("data");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}*/
+                    //System.out.println(map.get("data"));
+                    /*System.out.println("是否为字符串");
+                    System.err.println((map.get("data") instanceof String));
+                    System.out.println("是否为字节数组");
+                    System.err.println((map.get("data") instanceof byte[]));
+                    System.out.println("是否为单个字节");
+                    System.err.println((map.get("data") instanceof Byte));*/
+                    //Object data = map.get("data");
+					//System.out.println(data);
+                    //System.out.println(data);
+                    //data = ((String) data).replaceAll("[\\[\\]]", "");
+                    //System.out.println(data);
+                   // byte[] bytes = ((String) data).getBytes();
                     /*try {
 						String md5 = TestTools.getMD5String(bytes);
 						if(md5 == map.get("mad5")) {
