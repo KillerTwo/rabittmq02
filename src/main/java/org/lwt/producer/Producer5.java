@@ -12,9 +12,12 @@ import java.util.concurrent.TimeoutException;
 import org.lwt.tools.FileUtils;
 import org.lwt.tools.TestTools;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.QueueingConsumer.Delivery;
 import com.google.gson.Gson;
 import com.rabbitmq.client.AMQP.Queue;
@@ -25,8 +28,8 @@ import com.rabbitmq.client.AMQP.Queue;
  *
  */
 
-public class Producer2 {
-	//private final static String QUEUE_NAME = "hello";
+public class Producer5 {
+	private final static String QUEUE_NAME = "hello_jianghu";
 	public static void main(String[] args) throws Exception {
 		String ip = "192.168.1.3";
 		int port = 5672;
@@ -39,21 +42,31 @@ public class Producer2 {
 		//获得信道
 		Channel channel = connection.createChannel();
 		
-		//声明交换器
-		String exchangeName = "myexchanges01";
-		channel.exchangeDeclare(exchangeName, "direct", true);
-		//声明routing-key
-		String routingKey = "myroutingkey01";
-		//发布消息
 		
-		// 上传一个文件
-		String path = Producer2.class.getClassLoader().getResource("").getPath();
-		path = path.substring(1, path.length());
-		File file = new File(path+"text.txt");
+		channel.queueDeclare(QUEUE_NAME,false,false,false,null);
+		String msg = "hello";
+		/*for(int i = 0; i < 10; i++ ) {
+			msg += i;*/
+			// 发送消息
+			System.out.println("开始发送消息。。。");
+			channel.basicPublish("",QUEUE_NAME, null, msg.getBytes());
+			// 接收应答
+			channel.basicConsume(QUEUE_NAME, true, new DefaultConsumer(channel) {
+		        @Override
+		        public void handleDelivery(String consumerTag,
+		                                   Envelope envelope,
+		                                   AMQP.BasicProperties properties,
+		                                   byte[] body) throws IOException {
+		           
+		        	
+		            System.out.println("响应的消息体内容：");
+		            String bodyStr = new String(body, "UTF-8");
+		            System.out.println(bodyStr);
+		           
+		        }
+		    });
+		//}
 		
-		//String fileMD5 = TestTools.getFileMD5(file);	//获取待上传文件的MD5
-		List<byte[]> byteList = FileUtils.splitDemo(file);	//将文件拆分（每份为1024bit）
-		toSend(byteList, file, channel, exchangeName, routingKey);	// 发送数据
 		
 		
 		if(channel != null) {

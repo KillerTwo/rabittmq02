@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -136,5 +137,36 @@ public class FileUtils {
         fos.close();
     }
 	
+	/**
+	 * 获取文件大小
+	 * 
+	 * 
+	 * @param file需要获取的文件的大小
+	 * @return	long 文件大小
+	 */
+	public static long getFileSize(File file) {
+		FileChannel fileChannel = null;
+		FileInputStream in = null;
+		if(file.exists() && file.isFile()) {
+			try {
+				in = new FileInputStream(file);
+				fileChannel = in.getChannel();
+				return fileChannel.size();
+			} catch (Exception e) {
+				
+				e.printStackTrace();
+			}finally {
+				if(in != null) {
+					try {
+						in.close();
+					} catch (IOException e) {
+						
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return -1;
+	}
 	
 }

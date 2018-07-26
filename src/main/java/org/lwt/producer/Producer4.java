@@ -73,7 +73,7 @@ public class Producer4 {
 			}
 		});
 		// 发送消息失败时会调用
-		//当消息被RabbitMQ拒绝或者说没有成功投递的时候
+		//当消息被RabbitMQ拒绝或者说没有成功投递的时候（mandatory设置为true时）
 		channel.addReturnListener(new ReturnListener() {
 			
 			@Override
@@ -95,7 +95,7 @@ public class Producer4 {
 			System.err.println(msg);
 			long seqNo = channel.getNextPublishSeqNo();
 			//channel.basicPublish("", QUEUE_NAME, null, msg.getBytes("utf-8"));
-			channel.basicPublish("", QUEUE_NAME, true, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes("utf-8"));
+			channel.basicPublish("", QUEUE_NAME, true,true, MessageProperties.PERSISTENT_TEXT_PLAIN, msg.getBytes("utf-8"));
 			confirmSet.add(seqNo);
 			i++;
 		}
