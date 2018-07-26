@@ -6,9 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.io.SequenceInputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -34,7 +36,7 @@ public class FileUtils {
 		File file = new File(path);
 		
 		splitDemo(file);*/
-		String path = FileUtils.class.getClassLoader().getResource("text.txt").getPath();
+		/*String path = FileUtils.class.getClassLoader().getResource("text.txt").getPath();
 		path = path.substring(1, path.length());
 		System.out.println(path);
 		File file = new File(path);
@@ -46,8 +48,10 @@ public class FileUtils {
 			String md5 = TestTools.getMD5String(bytess);
 			System.out.println(md5);
 			break;
-		}
-		
+		}*/
+		String fileName = "test.txt";
+		String[] fileNames = fileName.split("\\.");
+		System.out.println(fileNames[0]);
 		/*List<byte[]> bytes = splitDemo(file);
 		
 		System.out.println(bytes.size());
@@ -91,8 +95,9 @@ public class FileUtils {
             fos.write(buf,0,len);
             fos.flush();
             fos.close();*/
-            packList.add(buf);
-            
+        	byte[] temp = new byte[buf.length];
+        	temp = Arrays.copyOf(buf, len);
+            packList.add(temp);
         }
         fis.close();
         return packList;
@@ -150,7 +155,9 @@ public class FileUtils {
 		if(file.exists() && file.isFile()) {
 			try {
 				in = new FileInputStream(file);
+				
 				fileChannel = in.getChannel();
+				
 				return fileChannel.size();
 			} catch (Exception e) {
 				
@@ -168,5 +175,33 @@ public class FileUtils {
 		}
 		return -1;
 	}
+	/**
+	 * 写入文件（以追加的方式写入）
+	 * @param file		目标文件file对象
+	 * @param bytes 	待写入的文件字节数组
+	 */
+	public static void write2File(File file, byte[] bytes) {   
+        RandomAccessFile randomFile = null;  
+        try {     
+            // 打开一个随机访问文件流，按读写方式     
+            randomFile = new RandomAccessFile(file, "rw");     
+            // 文件长度，字节数     
+            long fileLength = randomFile.length();     
+            // 将写文件指针移到文件尾。     
+            randomFile.seek(fileLength);
+            randomFile.write(bytes);
+            //randomFile.writeBytes(content);      
+        } catch (IOException e) {     
+            e.printStackTrace();     
+        } finally{  
+            if(randomFile != null){  
+                try {  
+                    randomFile.close();  
+                } catch (IOException e) {  
+                    e.printStackTrace();  
+                }  
+            }  
+        }  
+    }    
 	
 }

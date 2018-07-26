@@ -24,36 +24,53 @@ import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.AMQP.Basic.Deliver;
+import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AMQP.Queue;
 
-
+/**
+ * 接受端类
+ * @author Administrator
+ *
+ */
 public class Customer {
-	private final static String QUEUE_NAME = "hello";
+	//private final static String QUEUE_NAME = "hello_queue";
 	
 	public static void main(String[] args) throws Exception {
-		ConnectionFactory factory = new ConnectionFactory();
-		factory.setUsername("yduser");
-		factory.setPassword("yd@user");
-		factory.setVirtualHost("ydkpbmp");
-	    factory.setHost("10.10.10.14");
-	    Connection connection = factory.newConnection();
+		//ConnectionFactory factory = new ConnectionFactory();
+		String ip = "10.10.10.14";
+		int port = 5672;
+		String username = "yduser";
+		String password = "yd@user";
+		String vhost = "ydkpbmp";
+		// 建立到服务器的链接
+	 	Connection connection = getConnection(ip, port, username, password, vhost);
 	    Channel channel = connection.createChannel();
 	   
 	    //声明交换器
-		String exchangeName = "myexchanges01";
+		String exchangeName = "myexchanges02";
 		channel.exchangeDeclare(exchangeName, "direct", true);
 		//声明队列
 		String queueName = channel.queueDeclare().getQueue();
         
 		//声明routing-key
-		String routingKey = "myroutingkey01";
+		String routingKey = "myroutingkey02";
 		
 		//绑定队列，通过键 routingKey 将队列和交换器绑定起来
         channel.queueBind(queueName, exchangeName, routingKey);
-        Gson gson = new Gson();
+        // 返回向应得信道
+        //Channel recvChannel = connection.createChannel();
+		//recvChannel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        
+        
+        List<byte[]> byteList= new ArrayList<>();
+        String path = FileUtils.class.getClassLoader().getResource("").getPath();
+		path = path.substring(1, path.length());
+		int i = 10;
+		File file = new File(path+i*10+".txt");
+		
         while(true) {
             //消费消息
-            boolean autoAck = true;	// 设置为手动确认
+            boolean autoAck = false;	// 设置为自动确认
             String consumerTag = "";
             channel.basicConsume(queueName, autoAck, consumerTag, new DefaultConsumer(channel) {
                 @Override
@@ -61,87 +78,114 @@ public class Customer {
                                            Envelope envelope,
                                            AMQP.BasicProperties properties,
                                            byte[] body) throws IOException {
-                    String routingKey = envelope.getRoutingKey();
-                    String contentType = properties.getContentType();
-                    /*System.out.println("消费的路由键：" + routingKey);
-                    System.out.println("消费的内容类型：" + contentType);*/
-                    //long deliveryTag = envelope.getDeliveryTag();
-                    //确认消息
-                    //channel.basicAck(deliveryTag, false);
+                    BasicProperties props = properties;
+                    BasicProperties replyProps = new BasicProperties()
+                    		.builder().build();
                     System.out.println("消费的消息体内容：");
                     
                     String bodyStr = new String(body, "UTF-8");		//接收到的消息
+                    System.out.println("Customer接收到的消息是==》"+bodyStr);
                     System.out.println(bodyStr);
                     System.out.println("------------------------");
                     
                     
+  
+                    // 将收到的资源解析为map对象
+                    Map<String,Object> map = getMapFromJson(bodyStr);
                     
-                    Map<String,Object> map = new HashMap<>();
-                    map = gson.fromJson(bodyStr, new com.google.gson.reflect.TypeToken<Map<String,Object>>(){}.getType());
-                    //Byte[] bytes = (Byte[])((List)map.get("data")).toArray();
-                    //System.out.println(bytes);
-                    /*System.out.println("是否时list");
-                    System.out.println((map.get("data") instanceof List));*/
+                   
                     byte[] bytes = ((String) map.get("data")).getBytes();
                     String recMd5 = "";
                     try {
                     	recMd5 = TestTools.getMD5String(bytes);
 					} catch (Exception e) {
-						
 						e.printStackTrace();
 					}
                     System.out.print(map.get("md5")+"=================>");
                     System.out.println(recMd5);
                     if(map.get("md5").equals(recMd5)) {
-                    	System.out.println("MD5校验通过。。。");
-                    }
-                    //System.out.println(bytes);
-                    String path = FileUtils.class.getClassLoader().getResource("text.txt").getPath();
-            		path = path.substring(1, path.length());
-            		int i = 10;
-            		File file = new File(path+i*10+".txt");
-            		FileOutputStream out = new FileOutputStream(file);
-            		out.write(bytes);
-            		
-                    i++;
-                    //System.out.println(map.get("data"));
-                    //String md5 = TestTools.getStringMD5(new String(map.get("data"),"utf-8"));
-                   /* try {
-						String data = (String) map.get("data");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}*/
-                    //System.out.println(map.get("data"));
-                    /*System.out.println("是否为字符串");
-                    System.err.println((map.get("data") instanceof String));
-                    System.out.println("是否为字节数组");
-                    System.err.println((map.get("data") instanceof byte[]));
-                    System.out.println("是否为单个字节");
-                    System.err.println((map.get("data") instanceof Byte));*/
-                    //Object data = map.get("data");
-					//System.out.println(data);
-                    //System.out.println(data);
-                    //data = ((String) data).replaceAll("[\\[\\]]", "");
-                    //System.out.println(data);
-                   // byte[] bytes = ((String) data).getBytes();
-                    /*try {
-						String md5 = TestTools.getMD5String(bytes);
-						if(md5 == map.get("mad5")) {
-							System.out.println("校验通过");
+                    	try {
+							Thread.sleep(2000);
+						} catch (InterruptedException e) {
+							
+							e.printStackTrace();
 						}
-						
-					} catch (Exception e) {
-						
-						e.printStackTrace();
-					}*/
-                    /*System.out.println(map.get("data"));
-                    System.out.println(map.get("md5"));*/
+                    	System.out.println("MD5校验通过。。。");
+                    	byteList.add(bytes);
+                    	Map<String, Object> responseMap = new HashMap<>();
+                    	responseMap.put("pkId", map.get("packnum"));
+                    	responseMap.put("msg", 0);
+                    	Gson gson = new Gson();
+                    	
+                    	String response = "is ok...";
+                    	response = gson.toJson(responseMap);
+                        //拿到replyQueue，并绑定为routing key，发送消息
+                        channel.basicPublish("", props.getReplyTo(), replyProps, response.getBytes("UTF-8"));
+                        //返回消息确认信息
+                        channel.basicAck(envelope.getDeliveryTag(), false);
+                    	//recvChannel.basicPublish("", QUEUE_NAME, null, ((String) map.get("packnum")+"已经接受到...").getBytes("utf-8"));
+                    	//System.out.println("发送了一条响应...");
+                    }
+                    
+                    
+            		//FileUtils.write2File(file, bytes);
+            		
                     
 
                 }
             });
+            //System.out.println("已通过验证的包数量："+byteList.size());
         }
-    	
+        
 	}
+	/**
+	 * 解析传递的json字符串为Map对象
+	 * 
+	 * 
+	 * @param jsonStr	json字符串
+	 * @return	Map,	由json字符串解析得到的map对象
+	 */
+	public static Map<String, Object> getMapFromJson(String jsonStr){
+		Gson gson = new Gson();
+		Map<String, Object> map = new HashMap<>();
+		map = gson.fromJson(jsonStr, new com.google.gson.reflect.TypeToken<Map<String,Object>>(){}.getType());
+		return map;
+	}
+	
+	/**
+	 * 
+	 * 获取一个链接
+	 * 
+	 * @param host	主机ip
+	 * @param port	链接端口
+	 * @param userName	链接用户名
+	 * @param password	链接密码
+	 * @param vhost		虚拟主机
+	 * @return			Connection创建的链接
+	 */
+	public static Connection getConnection(String host, int port, String userName, String password, String vhost) {
+		//创建链接工厂
+		ConnectionFactory factory = new ConnectionFactory();
+		Connection connection = null;
+		// 设置用户名密码
+		factory.setUsername(userName);
+		factory.setPassword(password);
+		factory.setVirtualHost(vhost);
+		// 设置rabbitMq服务器地址
+		factory.setHost(host);
+		factory.setPort(port);
+		// 建立到服务器的链接
+		try {
+			connection = factory.newConnection();
+			return connection;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (TimeoutException e) {
+			e.printStackTrace();
+		}
+		return null;
+		
+	}
+	
 	
 }
