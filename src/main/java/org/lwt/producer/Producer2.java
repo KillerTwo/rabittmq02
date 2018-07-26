@@ -106,14 +106,23 @@ public class Producer2 {
 			QueueingConsumer consumer){
 		
 		String fileMD5 = TestTools.getFileMD5(file);	//获取待上传文件的MD5
+		
 		String fileName = file.getName();
 		for(int i = 0; i < byteList.size(); i++) {
 			sendQueue.offer(i);
+			/**
+			 * map 用来存放已经发送的ID和对应的发送时间，即{"packnum" = packnum,sendTime=date}
+			 * 如果5秒后没有收到对应该包的响应，怎将该报重新发一遍
+			 * 
+			 * 在发送的时候对应的数据存入map之中
+			 */
+			
+			// map.put("packnum",i);
 			String data = getFilePack(byteList.get(i), fileMD5, byteList.size(), i, fileName);
 			// 分开发送每一部分的数据
 			try {
 				System.out.println("发送数据...");
-				
+				//map.put("sendTime", System.currentTimeMillis());
 				call(data,callbackQueueName,channel,consumer,exchangeName,routingKey);		// 发送数据之后接收一个响应
 				
 			} catch (TimeOutException e) {
