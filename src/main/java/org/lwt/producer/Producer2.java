@@ -111,10 +111,10 @@ public class Producer2 {
 		for(int i = 0; i < byteList.size(); i++) {
 			sendQueue.offer(i);
 			/**
-			 * map 用来存放已经发送的ID和对应的发送时间，即{"packnum" = packnum,sendTime=date}
+			 * tempmap 用来存放已经发送的ID和对应的发送时间，即{"packnum" = packnum,sendTime=date}
 			 * 如果5秒后没有收到对应该包的响应，怎将该报重新发一遍
 			 * 
-			 * 在发送的时候对应的数据存入map之中
+			 * 在发送的时候对应的数据存入tempmap之中
 			 */
 			
 			// map.put("packnum",i);
@@ -127,7 +127,17 @@ public class Producer2 {
 				
 			} catch (TimeOutException e) {
 				System.out.println("接收响应超时了，要在此处重发...");
-				//call(data,callbackQueueName,channel,consumer,exchangeName,routingKey);
+				try {
+					// 重发没有接到响应的包
+					/**
+					 * byte[] bytes = byteList.get(tempmap.get("packnum"));
+					 * 将bytes 重发
+					 */
+					call(data,callbackQueueName,channel,consumer,exchangeName,routingKey);
+				} catch (Exception e1) {
+					
+					e1.printStackTrace();
+				}
 				e.printStackTrace();
 			}catch (Exception e) {
 				e.printStackTrace();
@@ -169,6 +179,8 @@ public class Producer2 {
 	        	
 	        	response = new String(delivery.getBody(),"UTF-8");
 		        System.out.println("[《sender》接收到的响应内容为：]"+response);
+		        //接收到响应，将tempmap中对应的包id删除
+		        // (将tempmap中对应的sendtime设置为0）
 		        break;
 	        }else {
 	        	// 如果超过1秒没收到响应，则抛出异常，重发没有收到响应的包
