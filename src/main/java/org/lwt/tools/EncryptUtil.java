@@ -18,7 +18,7 @@ import com.google.gson.Gson;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
-public class TestTools {
+public class EncryptUtil {
 	private static final char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             'a', 'b', 'c', 'd', 'e', 'f'};
 	

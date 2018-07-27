@@ -25,6 +25,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import com.sun.scenario.effect.DelegateEffect;
 import com.rabbitmq.client.AMQP.Basic.Deliver;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AMQP.Queue;
@@ -34,7 +35,7 @@ import com.rabbitmq.client.AMQP.Queue;
  * @author Administrator
  *
  */
-public class Customer {
+public class Customer2 {
 	//private final static String QUEUE_NAME = "hello_queue";
 	
 	public static void main(String[] args) throws Exception {
@@ -127,24 +128,39 @@ public class Customer {
                     
             		//FileUtils.write2File(file, bytes);
                     
-                	System.out.println("响应给服务端的的数据是[]"+response);
-                	System.out.println("包的总数是==="+map.get("packcount"));
-                    if(byteList.size() == (Double)map.get("packcount")) {
-                    	System.err.println("已经成功接收数据...");
-                    	Map<String, Object> responseMap = new HashMap<>();
-                    	responseMap.put("pkId", map.get("packid"));
-                    	responseMap.put("msg", 0);
-                    	Gson gson = new Gson();
-                    	response = gson.toJson(responseMap);
-                    	// 在发回响应前睡5000毫秒
-                    	try {
-							Thread.sleep(5000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-                    	 // 接收到所有的包后再返回一个响应
-                        //拿到replyQueue，并绑定为routing key，发送消息
-                    	channel.basicPublish("", props.getReplyTo(), replyProps, response.getBytes("UTF-8"));
+                	//System.out.println("响应给服务端的的数据是[]"+response);
+                	//System.out.println("包的总数是==="+map.get("packcount"));
+                    if(sortedMap.size() == (Double)map.get("packcount")) {
+                    	//循环sortedMap将内容写入文件中
+                    	for(Map.Entry<Double, Object> entry: sortedMap.entrySet()) {
+                    		//System.out.println(entry.getKey() + "=="+ entry.getValue());
+                    		FileUtils.write2File(file, (byte[])entry.getValue());
+                    	}
+                    	String fileMD5 = EncryptUtil.getFileMD5(file);
+                    	System.out.println(map.get("allMD5"));
+                    	System.out.println(fileMD5);
+                    	if(map.get("allMD5").equals(fileMD5)) {		//如果最终文件md5校验通过则返回接收成功的响应。
+                    		System.err.println("文件md5相等。。。");
+                    		System.err.println("已经成功接收数据...");
+                        	Map<String, Object> responseMap = new HashMap<>();
+                        	responseMap.put("pkId", map.get("packid"));
+                        	responseMap.put("msg", 0);
+                        	Gson gson = new Gson();
+                        	response = gson.toJson(responseMap);
+                        	// 在发回响应前睡5000毫秒
+                        	/*try {
+    							Thread.sleep(5000);
+    						} catch (InterruptedException e) {
+    							e.printStackTrace();
+    						}*/
+                        	 // 接收到所有的包后再返回一个响应
+                            //拿到replyQueue，并绑定为routing key，发送消息
+                        	channel.basicPublish("", props.getReplyTo(), replyProps, response.getBytes("UTF-8"));
+                    	}else {
+                    		file.delete();
+                    		
+                    	}
+                    	
                     }
 
                 }

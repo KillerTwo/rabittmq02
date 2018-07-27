@@ -6,7 +6,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
 
-import org.lwt.tools.TestTools;
+import org.lwt.tools.EncryptUtil;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;

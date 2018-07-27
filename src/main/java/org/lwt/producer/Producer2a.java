@@ -3,6 +3,7 @@ package org.lwt.producer;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +15,7 @@ import javax.management.Query;
 
 import org.lwt.exception.TimeOutException;
 import org.lwt.tools.FileUtils;
+import org.lwt.tools.JsonUtil;
 import org.lwt.tools.EncryptUtil;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
@@ -32,9 +34,13 @@ import com.google.gson.Gson;
  * @author lwt27
  *
  */
-
-public class Producer2 {
+@SuppressWarnings("deprecation")
+public class Producer2a {
 	//private final static String QUEUE_NAME = "hello_queue";
+	final static List<Map<String, Object>> reSendList = new ArrayList<>();
+	final static Map<String, Object> reSendMap = new HashMap<>();
+	final static Map<String, Object> sendTimeMap = new HashMap<>();
+	private static boolean responseFlag = false;
 	public static void main(String[] args) throws Exception {
 		/*String ip = "192.168.1.3";
 		int port = 5672;
@@ -54,11 +60,26 @@ public class Producer2 {
 		// 设置回调队列
 		/********************************************************/
 		String callbackQueueName = channel.queueDeclare().getQueue();
-		System.out.println(callbackQueueName);
+		/*System.out.println(callbackQueueName);
 		QueueingConsumer consumer = new QueueingConsumer(channel);
-	    channel.basicConsume(callbackQueueName, true, consumer);
+	    channel.basicConsume(callbackQueueName, true, consumer);*/
 		/********************************************************/
-		
+	    // 接收响应消息
+		channel.basicConsume(callbackQueueName, new DefaultConsumer(channel) {
+			@Override
+			public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties properties, byte[] body)
+					throws IOException {
+				responseFlag = true;
+				System.out.println("接收到响应：==》");
+				
+				String response = new String(body,"utf-8");
+				Map<String, Object> resMap = JsonUtil.getMapFromJson(response);
+				System.out.println(response);
+				System.out.println(resMap);
+			}
+			
+			
+		});
 		//声明交换器
 		String exchangeName = "myexchanges02";
 		channel.exchangeDeclare(exchangeName, "direct", true);
@@ -67,7 +88,7 @@ public class Producer2 {
 		//发布消息
 		
 		// 上传一个文件
-		String path = Producer2.class.getClassLoader().getResource("").getPath();
+		String path = Producer2a.class.getClassLoader().getResource("").getPath();
 		path = path.substring(1, path.length());
 		File file = new File(path+"text.txt");
 		
@@ -81,10 +102,40 @@ public class Producer2 {
 		
 		List<byte[]> byteList = FileUtils.splitDemo(file);	//将文件拆分（每份为1024字节）
 		System.out.println("包的数量== "+byteList.size());
-		toSend(byteList, file, channel, exchangeName, routingKey, sendQueue, callbackQueueName, consumer);	// 发送数据
+		long finishTime = toSend(byteList, file, channel, exchangeName, routingKey, sendQueue, callbackQueueName, null);	// 发送数据
+		// 全部发送完成后，开始判断是否在规定的时间内接收到响应
+		//long currentTime = System.currentTimeMillis();
+		isTimeOut(finishTime,2000);
+		/*while((currentTime - finishTime) < 10000) {
+			if(responseFlag) {
+				System.out.println("收到响应，发送结束...");
+				break;
+			}
+			currentTime = System.currentTimeMillis();
+		}*/
+		System.out.println(responseFlag);
+		if(!responseFlag) {		//如果超过等待时间还没有收到响应，则应该重新发送数据
+			System.out.println("接收响应超时，需要重新发送数据。。。");
+			finishTime = toSend(byteList, file, channel, exchangeName, routingKey, sendQueue, callbackQueueName, null);	// 发送数据
+			isTimeOut(finishTime, 2000);
+		}
 		
-
 	}
+	/**
+	 *	 判断是否在规定时间内还没有接收到响应
+	 * @param finishTime	发送完成的时间
+	 */
+	public static void isTimeOut(long finishTime,long delayTime) {
+		long currentTime = System.currentTimeMillis();
+		while((currentTime - finishTime) < delayTime) {
+			if(responseFlag) {
+				System.out.println("收到响应，发送结束...");
+				break;
+			}
+			currentTime = System.currentTimeMillis();
+		}
+	}
+	
 	/**
 	 * 发送数据到rabbitMQ
 	 * @param byteList	文件的包字节数组
@@ -92,8 +143,9 @@ public class Producer2 {
 	 * @param channel	RabbitMQ信道
 	 * @param exchangeName	RabbitMQ 交换器名
 	 * @param routingKey	RabbitMQ 路由键
+	 * @return long			返回一个所有包都发送完成的时间
 	 */
-	public static void toSend(List<byte[]> byteList, File file,
+	public static long toSend(List<byte[]> byteList, File file,
 			Channel channel, String exchangeName, 
 			String routingKey, final Queue<Integer> sendQueue, String callbackQueueName,
 			QueueingConsumer consumer){
@@ -114,18 +166,19 @@ public class Producer2 {
 			String data = getFilePack(byteList.get(i), fileMD5, byteList.size(), i, fileName);
 			// 分开发送每一部分的数据
 			try {
-				System.out.println("发送数据...");
-				//map.put("sendTime", System.currentTimeMillis());
+				
 				call(data,callbackQueueName,channel,consumer,exchangeName,routingKey);		// 发送数据之后接收一个响应
+				Map<String, Object> reSendMap = new HashMap<>();
+				
+				reSendMap.put("packnum", i);
+				reSendList.add(reSendMap);
+				
+				sendTimeMap.put(String.valueOf(i), System.currentTimeMillis());
 				
 			} catch (TimeOutException e) {
 				System.out.println("接收响应超时了，要在此处重发...");
 				try {
-					// 重发没有接到响应的包
-					/**
-					 * byte[] bytes = byteList.get(tempmap.get("packnum"));
-					 * 将bytes 重发
-					 */
+					
 					call(data,callbackQueueName,channel,consumer,exchangeName,routingKey);
 				} catch (Exception e1) {
 					
@@ -136,6 +189,8 @@ public class Producer2 {
 				e.printStackTrace();
 			}
 		}
+		// 最后一个数据包发送完成后返回一个发送完成的时间
+		return System.currentTimeMillis();
 	}
 	
 	/**
@@ -160,39 +215,42 @@ public class Producer2 {
                                     .build();
         //发送消息，并加上之前封装好的属性replyTo=响应（回调）队列
         channel.basicPublish(exchangeName, routingkey, props, message.getBytes("utf-8"));
+        
         long startTime = System.currentTimeMillis();
         long endTime = System.currentTimeMillis();
         long timeout = 0;
-        while ((endTime - startTime) < 1000) {
-        	System.out.println("等待时间是="+(endTime - startTime));
-        	System.out.println("接收响应循环...");
-	        QueueingConsumer.Delivery delivery = consumer.nextDelivery();
-	        if(delivery.getBody() != null) {
-	        	// 如果在规定的时间内接收到响应
-	        	
-	        	response = new String(delivery.getBody(),"UTF-8");
-		        System.out.println("[《sender》接收到的响应内容为：]"+response);
-		        //接收到响应，将tempmap中对应的包id删除
-		        // (将tempmap中对应的sendtime设置为0）
-		        break;
-	        }else {
-	        	// 如果超过1秒没收到响应，则抛出异常，重发没有收到响应的包
-	        	if(timeout > 1000) {
-	        		System.out.println("接收响应超时");
-	        		throw new TimeOutException("超时没有收到响应");
-	        	}else {
-	        		System.out.println("继续读取响应时间");
-	        		// 读取当前时间
-	        		endTime = System.currentTimeMillis();
-	        		//计算当前时间和初始时间之间的间隔
-	        		timeout = endTime - startTime;
-	        	}
-	        }
-	        System.out.println("timeout is "+timeout);
-        }
+
         
        
       }
+	
+	/**
+	 * 
+	 * 重发数据包
+	 * 
+	 * @param channel	信道
+	 * @param replyQueueName	回调queue
+	 * @param packnum			包id
+	 * @param exchangeName		交换器名
+	 * @param routingkey		路由键
+	 * @param message			要重发的数据信息
+	 */
+	public static void reSend(Channel channel,String replyQueueName,int packnum,
+			String exchangeName, String routingkey,String message) {
+		//封装correlationId和replyQueue属性
+        BasicProperties props = new BasicProperties
+                                    .Builder()
+                                    .replyTo(replyQueueName)
+                                    .build();
+        //发送消息，并加上之前封装好的属性replyTo=响应（回调）队列
+        try {
+			channel.basicPublish(exchangeName, routingkey, props, message.getBytes("utf-8"));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	
 	/**

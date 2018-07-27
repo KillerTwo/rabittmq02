@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.lwt.tools.FileUtils;
-import org.lwt.tools.TestTools;
+import org.lwt.tools.EncryptUtil;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -87,7 +87,7 @@ public class Producer5 {
 	 * @param routingKey	RabbitMQ 路由键
 	 */
 	public static void toSend(List<byte[]> byteList, File file, Channel channel, String exchangeName, String routingKey){
-		String fileMD5 = TestTools.getFileMD5(file);	//获取待上传文件的MD5
+		String fileMD5 = EncryptUtil.getFileMD5(file);	//获取待上传文件的MD5
 		for(int i = 0; i < byteList.size(); i++) {
 			String data = getFilePack(byteList.get(i), fileMD5, byteList.size(), i);
 			// 分开发送每一部分的数据
@@ -111,7 +111,7 @@ public class Producer5 {
 		Map<String, Object> map = new HashMap<>();
 		String md5 = null;
 		try {
-			md5 = TestTools.getMD5String(bytes);
+			md5 = EncryptUtil.getMD5String(bytes);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
