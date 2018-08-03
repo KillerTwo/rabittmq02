@@ -3,7 +3,8 @@ package org.lwt.tools;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 public class JsonUtil {
 	/**
@@ -14,9 +15,14 @@ public class JsonUtil {
 	 * @return	Map,	由json字符串解析得到的map对象
 	 */
 	public static Map<String, Object> getMapFromJson(String jsonStr){
-		Gson gson = new Gson();
+		//Gson gson = new Gson();
 		Map<String, Object> map = new HashMap<>();
-		map = gson.fromJson(jsonStr, new com.google.gson.reflect.TypeToken<Map<String,Object>>(){}.getType());
+		//map = gson.fromJson(jsonStr, new com.google.gson.reflect.TypeToken<Map<String,Object>>(){}.getType());
+		
+		JSONObject  jsonObject = JSONObject.parseObject(jsonStr);
+	    //json对象转Map
+	    map = (Map<String,Object>)jsonObject;
+		
 		return map;
 	}
 	/**
@@ -26,8 +32,10 @@ public class JsonUtil {
 	 * @return		返回map 对应得json字符串
 	 */
 	public static String getJsonFromMap(Map<String, Object> map) {
-		Gson gson = new Gson();
-		String jsonStr = gson.toJson(map);
+		/*Gson gson = new Gson();
+		String jsonStr = gson.toJson(map);*/
+		String jsonStr = JSON.toJSONString(map);
 		return jsonStr;
 	}
+	
 }

@@ -14,6 +14,7 @@ import javax.management.Query;
 
 import org.lwt.exception.TimeOutException;
 import org.lwt.tools.FileUtils;
+import org.lwt.tools.JsonUtil;
 import org.lwt.tools.EncryptUtil;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
@@ -25,7 +26,6 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.ShutdownSignalException;
-import com.google.gson.Gson;
 
 /**
  * 生产者类
@@ -307,8 +307,7 @@ public class Producer2 {
 			e.printStackTrace();
 		}
 		map.put("allMD5", fileMD5);
-		Gson gson = new Gson();
-		String data = gson.toJson(map);
+		String data = JsonUtil.getJsonFromMap(map);
 		return data;
 	}
 	/**

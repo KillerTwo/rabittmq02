@@ -4,24 +4,26 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import javax.swing.DebugGraphics;
-
-import com.google.gson.Gson;
 
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
+import sun.nio.ch.FileChannelImpl;
 
 public class EncryptUtil {
 	private static final char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             'a', 'b', 'c', 'd', 'e', 'f'};
-	
+	private static MessageDigest mMessageDigest = null;
 	public static void main(String[] args) {
 		
 		//System.out.println(getMsg());
@@ -56,10 +58,10 @@ public class EncryptUtil {
 				pkMap.put("allmd5", "");
 				pkMap.put("data", "hello world...MD5");
 				
-				Gson gson = new Gson();
+				//Gson gson = new Gson();
 				
-				String pkMsg = gson.toJson(pkMap);
-				
+				/*String pkMsg = gson.toJson(pkMap);*/
+				String pkMsg = JsonUtil.getJsonFromMap(pkMap);
 				System.out.println(pkMsg);
 				System.out.println(getStringMD5(pkMsg));
 		
@@ -120,26 +122,81 @@ public class EncryptUtil {
 	public static String getFileMD5(File file) {
 		 
         FileInputStream in = null;
+        FileChannel ch = null;
+        ByteBuffer buf = null;
         try {
             in = new FileInputStream(file);
-            FileChannel ch = in.getChannel();
-            return MD5(ch.map(FileChannel.MapMode.READ_ONLY, 0, file.length()));
+            ch = in.getChannel();
+            long size = file.length();
+            buf = ch.map(FileChannel.MapMode.READ_ONLY, 0, size);
+            String md5 = MD5(buf);
+            return md5;
         } catch (FileNotFoundException e) {
+        	//e.printStackTrace();
             return "";
         } catch (IOException e) {
+        	//e.printStackTrace();
             return "";
         } finally {
+        	
+            try {
+            	// 手动unmap,当调用ch.map时必须手动unmap才能删除该文件
+				Method m = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);  //根据方法名和参数类型列表获取该方法的反射
+				m.setAccessible(true);  
+				m.invoke(FileChannelImpl.class, buf);			// 传入调用对象和参数，调用method指定的对象
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}  
+        	if(ch != null) {
+            	try {
+					ch.close();
+					//System.out.println("ch close");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+            }
             if (in != null) {
                 try {
                     in.close();
+                    //System.out.println("in close");
                 } catch (IOException e) {
                     // 关闭流产生的错误一般都可以忽略
+                	e.printStackTrace();
                 }
             }
+          
         }
- 
+        
     }
 
+	/**
+	 * 自定义获取md5值
+	 * @param file
+	 * @return 加密后的字符串
+	 */
+	public static String getFileMD5String(List<byte[]> bytes) {
+		
+		 try {
+		        mMessageDigest = MessageDigest.getInstance("MD5");
+		    } catch (NoSuchAlgorithmException e) {
+		        
+		        e.printStackTrace();
+		}
+
+		
+        try {
+        	
+            for (byte[] bs : bytes) {
+            	mMessageDigest.update(bs);
+			}
+            return new BigInteger(1, mMessageDigest.digest()).toString(16);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+	}
+	
+	
 	/**
      * 计算MD5校验
      * @param buffer
@@ -147,6 +204,7 @@ public class EncryptUtil {
      */
     
     private static String MD5(ByteBuffer buffer) {
+    	
         String s = "";
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -167,6 +225,8 @@ public class EncryptUtil {
  
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        }finally {
+        	
         }
         return s;
     }
@@ -197,4 +257,26 @@ public class EncryptUtil {
 		}
 		return null;
 	}
+	
+	  /**
+     * 使用base64将文件加密
+     * @param s	要加密的字符串
+     * @return	加密后的字符串
+     */
+	public static String encodeByBase64(byte[] bytes) {
+		
+		return Base64.getEncoder().encodeToString(bytes);
+	}
+	/**
+	 * 
+	 * 使用base64解密
+	 * 
+	 * @param decodeStr	加密后的字符串
+	 * @return	解密后的字符串
+	 */
+	public static byte[] decodeByteByBase64(String decodeStr) {
+		
+		return Base64.getDecoder().decode(decodeStr); 
+	}
+	
 }

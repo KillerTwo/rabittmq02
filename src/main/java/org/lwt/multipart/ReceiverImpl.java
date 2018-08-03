@@ -1,66 +1,64 @@
-package org.lwt.receiver;
+package org.lwt.multipart;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.CharacterIterator;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeoutException;
 
+import javax.jws.WebService;
+
+import org.lwt.tools.EncryptUtil;
 import org.lwt.tools.FileUtils;
 import org.lwt.tools.JsonUtil;
-import org.lwt.tools.EncryptUtil;
 
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import com.sun.scenario.effect.DelegateEffect;
-import com.rabbitmq.client.AMQP.Basic.Deliver;
 import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.AMQP.Queue;
+@WebService(serviceName="receiver")
+public class ReceiverImpl implements Receiver {
 
-/**
- * 接收端类
- * @author Administrator
- *
- */
-public class Customer2 {
+	/*private String ip = "10.10.10.14";
+	private int port = 5672;
+	private String username = "yduser";
+	private String password = "yd@user";
+	private String vhost = "ydkpbmp";*/
+	private String ip = "192.168.1.3";
+	private int port = 5672;
+	private String username = "alice";
+	private String password = "123456";
+	private String vhost = "vhost_01";
+	public ReceiverImpl() {
+		
+	}
 	
-	public static void main(String[] args) throws Exception {
-		
-		String ip = "10.10.10.14";
-		int port = 5672;
-		String username = "yduser";
-		String password = "yd@user";
-		String vhost = "ydkpbmp";
-		
-	 	Connection connection = getConnection(ip, port, username, password, vhost);		// 建立到服务器的链接
+	public ReceiverImpl(String ip, int port, String username, String password, String vhost) {
+		super();
+		this.ip = ip;
+		this.port = port;
+		this.username = username;
+		this.password = password;
+		this.vhost = vhost;
+	}
+
+	@Override
+	public void receiver(File file) throws Exception {
+		Connection connection = getConnection(ip, port, username, password, vhost);		// 建立到服务器的链接
 	    Channel channel = connection.createChannel();
 		String exchangeName = "myexchanges02";											 //声明交换器
 		channel.exchangeDeclare(exchangeName, "direct", true);
 		String queueName = channel.queueDeclare().getQueue();							//声明队列
 		String routingKey = "myroutingkey02";											//声明routing-key
         channel.queueBind(queueName, exchangeName, routingKey);							//绑定队列，通过键 routingKey 将队列和交换器绑定起来
-
         List<byte[]> byteList= new ArrayList<>();
-        /********************存储接收到的文件的路径（测试中使用，真实使用中将使用用户传入的参数）**********************/
-        String path = FileUtils.class.getClassLoader().getResource("").getPath();
-		path = path.substring(1, path.length());
-		int i = 10;
-		File file = new File(path+i*10+".txt");
-		/************************************************************************/
-		
         /**
          * 消费消息
          */
@@ -126,21 +124,10 @@ public class Customer2 {
                 }
             }
         });
+
 	}
 	
-	/**
-	 * 解析传递的json字符串为Map对象
-	 * 
-	 * 
-	 * @param jsonStr	json字符串
-	 * @return	Map,	由json字符串解析得到的map对象
-	 */
-	public static Map<String, Object> getMapFromJson(String jsonStr){
-		
-		Map<String, Object> map = new HashMap<>();
-		map = JsonUtil.getMapFromJson(jsonStr);
-		return map;
-	}
+	
 	
 	/**
 	 * 
@@ -176,6 +163,5 @@ public class Customer2 {
 		return null;
 		
 	}
-	
-	
+
 }

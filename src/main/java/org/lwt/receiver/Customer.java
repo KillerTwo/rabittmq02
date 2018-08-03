@@ -17,7 +17,7 @@ import org.lwt.tools.FileUtils;
 import org.lwt.tools.JsonUtil;
 import org.lwt.tools.EncryptUtil;
 
-import com.google.gson.Gson;
+
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -134,8 +134,8 @@ public class Customer {
                     	Map<String, Object> responseMap = new HashMap<>();
                     	responseMap.put("pkId", map.get("packid"));
                     	responseMap.put("msg", 0);
-                    	Gson gson = new Gson();
-                    	response = gson.toJson(responseMap);
+                    	
+                    	response = JsonUtil.getJsonFromMap(responseMap);
                     	// 在发回响应前睡5000毫秒
                     	try {
 							Thread.sleep(5000);
@@ -154,19 +154,7 @@ public class Customer {
         //}
         
 	}
-	/**
-	 * 解析传递的json字符串为Map对象
-	 * 
-	 * 
-	 * @param jsonStr	json字符串
-	 * @return	Map,	由json字符串解析得到的map对象
-	 */
-	public static Map<String, Object> getMapFromJson(String jsonStr){
-		Gson gson = new Gson();
-		Map<String, Object> map = new HashMap<>();
-		map = gson.fromJson(jsonStr, new com.google.gson.reflect.TypeToken<Map<String,Object>>(){}.getType());
-		return map;
-	}
+	
 	
 	/**
 	 * 

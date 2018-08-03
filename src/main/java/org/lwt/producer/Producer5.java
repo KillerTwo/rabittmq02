@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import org.lwt.tools.FileUtils;
+import org.lwt.tools.JsonUtil;
 import org.lwt.tools.EncryptUtil;
 
 import com.rabbitmq.client.AMQP;
@@ -19,7 +20,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.QueueingConsumer.Delivery;
-import com.google.gson.Gson;
+
 import com.rabbitmq.client.AMQP.Queue;
 
 /**
@@ -135,8 +136,7 @@ public class Producer5 {
 			e.printStackTrace();
 		}
 		map.put("allMD5", fileMD5);
-		Gson gson = new Gson();
-		String data = gson.toJson(map);
+		String data = JsonUtil.getJsonFromMap(map);
 		return data;
 	}
 	/**
