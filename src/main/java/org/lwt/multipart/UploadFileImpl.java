@@ -48,10 +48,14 @@ import com.rabbitmq.client.AMQP.BasicProperties;
 public class UploadFileImpl implements UpLoadFile {
 	
 	
-	private String username = "yduser";										// 用户名
+	/*private String username = "yduser";										// 用户名
 	private String password = "yd@user";									// 密码
 	private String vhost = "ydkpbmp";										// 虚拟主机
-	private String ip = "10.10.10.14";										// 主机ip
+	private String ip = "10.10.10.14";		*/								// 主机ip
+	private String username = "alice";										// 用户名
+	private String password = "123456";									// 密码
+	private String vhost = "vhost_01";										// 虚拟主机
+	private String ip = "192.168.1.3";
 	private int port = 5672;												// 访问端口
 	private Connection connection = null;									// tcp连接
 	private Channel channel = null;											// 信道
@@ -200,7 +204,12 @@ public class UploadFileImpl implements UpLoadFile {
 		sendTask();
 		System.out.println("sendTime "+sendTime+
 				" || responseFlag "+responseFlag);							// 发送完成第一次请求(重发次数小于3并且没有收到响应则进入循环)
+		int temp  = 0;														// 定义一个计数值 用来终止无限循环
 		while(sendTime <= 3 && !responseFlag) {
+			temp++;
+			if(temp > 3) {
+				break;
+			}
 			System.out.println("进入while循环。。。");
 			if(firstRecv) {
 				
@@ -239,7 +248,7 @@ public class UploadFileImpl implements UpLoadFile {
 	}
 	/*******************************************************/
 	@Override
-	public void receiver(String path, String fileName) throws Exception {
+	public void receiver(String path) throws Exception {
 		/*byte[] tempByte = EncryptUtil.decodeByteByBase64(path);
 		targetFile = FileUtils.bytes2File(tempByte,"C:\\RabbitMqTemp\\", fileName);*/
 		recvPackCount = 0;
@@ -288,13 +297,17 @@ public class UploadFileImpl implements UpLoadFile {
                 if(openFileFlag) {											// 如果是第一次接收文件则创建目标文件
                 	
                 	try {
+                		
                 		File temp = new File(path);
-                		System.err.println("创建目录。。。");
-                		temp.mkdirs();
+                		if(!temp.exists()) {
+                			temp.mkdirs();
+                			System.err.println("创建目录。。。");
+                		}
 						targetFile = new File(path+map.
 								get("fileName")+"."+map.get("ext"));			// 构建文件存放路径
 						if(!targetFile.exists()) {
 							targetFile.createNewFile();
+							System.out.println("创建文件...");
 						}
 					} catch (Exception e) {
 						
@@ -542,13 +555,13 @@ public class UploadFileImpl implements UpLoadFile {
 		// 建立一个新的链接池
 				ConnectionFactory factory = new ConnectionFactory();
 				// 链接地址
-				factory.setHost("10.10.10.14");
+				factory.setHost(ip);
 				// 链接名字
-				factory.setUsername("yduser");
+				factory.setUsername(username);
 				// 链接密码
-				factory.setPassword("yd@user");
+				factory.setPassword(password);
 				// 链接的虚拟机
-				factory.setVirtualHost("ydkpbmp");
+				factory.setVirtualHost(vhost);
 				// 建立一个新的链接
 				Connection connection = factory.newConnection();
 				// 建立一个队列
