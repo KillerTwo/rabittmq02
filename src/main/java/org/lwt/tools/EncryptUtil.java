@@ -19,7 +19,11 @@ import java.util.Map;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 import sun.nio.ch.FileChannelImpl;
-
+/**
+ * 	MD5及base64加密类
+ * 	@author Administrator
+ *
+ */
 public class EncryptUtil {
 	private static final char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             'a', 'b', 'c', 'd', 'e', 'f'};
@@ -44,7 +48,7 @@ public class EncryptUtil {
 	
 	public static String getMsg() {
 		
-		// 数据包
+				// 数据包
 				Map<String, Object> pkMap = new HashMap<>();
 				
 				String md5 = getStringMD5("hello world...MD5");
@@ -67,6 +71,7 @@ public class EncryptUtil {
 		
 		return pkMsg;
 	}
+	
 	/**
 	 * 获取字节数组的md5值
 	 * @param bytes
@@ -96,7 +101,7 @@ public class EncryptUtil {
 	public static String getStringMD5(String s) {
         MessageDigest mdInst;
         try {
-            // 获得MD5摘要算法的 MessageDigest 对象
+            																// 获得MD5摘要算法的 MessageDigest 对象
             mdInst = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -104,11 +109,11 @@ public class EncryptUtil {
         }
  
         byte[] btInput = s.getBytes();
-        // 使用指定的字节更新摘要
+        																	// 使用指定的字节更新摘要
         mdInst.update(btInput);
-        // 获得密文
+        																	// 获得密文
         byte[] md = mdInst.digest();
-        // 把密文转换成十六进制的字符串形式
+        																	// 把密文转换成十六进制的字符串形式
         int length = md.length;
         char str[] = new char[length * 2];
         int k = 0;
@@ -140,10 +145,11 @@ public class EncryptUtil {
         } finally {
         	
             try {
-            	// 手动unmap,当调用ch.map时必须手动unmap才能删除该文件
-				Method m = FileChannelImpl.class.getDeclaredMethod("unmap", MappedByteBuffer.class);  //根据方法名和参数类型列表获取该方法的反射
+            																// 手动unmap,当调用ch.map时必须手动unmap才能删除该文件
+				Method m = FileChannelImpl.class.getDeclaredMethod("unmap",
+						MappedByteBuffer.class);  							//根据方法名和参数类型列表获取该方法的反射
 				m.setAccessible(true);  
-				m.invoke(FileChannelImpl.class, buf);			// 传入调用对象和参数，调用method指定的对象
+				m.invoke(FileChannelImpl.class, buf);						// 传入调用对象和参数，调用method指定的对象
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}  
@@ -158,9 +164,9 @@ public class EncryptUtil {
             if (in != null) {
                 try {
                     in.close();
-                    //System.out.println("in close");
+                    														//System.out.println("in close");
                 } catch (IOException e) {
-                    // 关闭流产生的错误一般都可以忽略
+                    														// 关闭流产生的错误一般都可以忽略
                 	e.printStackTrace();
                 }
             }
@@ -198,9 +204,9 @@ public class EncryptUtil {
 	
 	
 	/**
-     * 计算MD5校验
-     * @param buffer
-     * @return 空串，如果无法获得 MessageDigest实例
+     * 	计算MD5校验
+     * 	@param buffer
+     * 	@return 空串，如果无法获得 MessageDigest实例
      */
     
     private static String MD5(ByteBuffer buffer) {
@@ -209,19 +215,19 @@ public class EncryptUtil {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(buffer);
-            byte tmp[] = md.digest(); // MD5 的计算结果是一个 128 位的长整数，
-            // 用字节表示就是 16 个字节
-            char str[] = new char[16 * 2]; // 每个字节用 16 进制表示的话，使用两个字符，
-            // 所以表示成 16 进制需要 32 个字符
-            int k = 0; // 表示转换结果中对应的字符位置
-            for (int i = 0; i < 16; i++) { // 从第一个字节开始，对 MD5 的每一个字节
-                // 转换成 16 进制字符的转换
-                byte byte0 = tmp[i]; // 取第 i 个字节
-                str[k++] = hexDigits[byte0 >>> 4 & 0xf]; // 取字节中高 4 位的数字转换, >>>,
-                // 逻辑右移，将符号位一起右移
-                str[k++] = hexDigits[byte0 & 0xf]; // 取字节中低 4 位的数字转换
+            byte tmp[] = md.digest(); 										// MD5 的计算结果是一个 128 位的长整数，
+            																// 用字节表示就是 16 个字节
+            char str[] = new char[16 * 2]; 									// 每个字节用 16 进制表示的话，使用两个字符，
+            																// 所以表示成 16 进制需要 32 个字符
+            int k = 0; 														// 表示转换结果中对应的字符位置
+            for (int i = 0; i < 16; i++) { 									// 从第一个字节开始，对 MD5 的每一个字节
+                															// 转换成 16 进制字符的转换
+                byte byte0 = tmp[i]; 										// 取第 i 个字节
+                str[k++] = hexDigits[byte0 >>> 4 & 0xf]; 					// 取字节中高 4 位的数字转换, >>>,
+                															// 逻辑右移，将符号位一起右移
+                str[k++] = hexDigits[byte0 & 0xf]; 							// 取字节中低 4 位的数字转换
             }
-            s = new String(str); // 换后的结果转换为字符串
+            s = new String(str); 											// 换后的结果转换为字符串
  
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -231,9 +237,9 @@ public class EncryptUtil {
         return s;
     }
     /**
-     * 使用base64将文件加密
-     * @param s	要加密的字符串
-     * @return	加密后的字符串
+     * 	使用base64将文件加密
+     * 	@param s	要加密的字符串
+     * 	@return	加密后的字符串
      */
 	public static String encodeByBase64(String s) {
 		byte[] bytes = s.getBytes();
@@ -241,10 +247,10 @@ public class EncryptUtil {
 	}
 	/**
 	 * 
-	 * 使用base64解密
+	 * 	使用base64解密
 	 * 
-	 * @param decodeStr	加密后的字符串
-	 * @return	解密后的字符串
+	 * 	@param decodeStr	加密后的字符串
+	 * 	@return	解密后的字符串
 	 */
 	public static String decodeByBase64(String decodeStr) {
 		byte[] bytes;
@@ -258,21 +264,22 @@ public class EncryptUtil {
 		return null;
 	}
 	
-	  /**
-     * 使用base64将文件加密
-     * @param s	要加密的字符串
-     * @return	加密后的字符串
+	 /**
+     * 	使用base64将文件加密
+     * 	@param s	要加密的字符串
+     * 	@return	加密后的字符串
      */
 	public static String encodeByBase64(byte[] bytes) {
 		
 		return Base64.getEncoder().encodeToString(bytes);
 	}
+	
 	/**
 	 * 
-	 * 使用base64解密
+	 * 	使用base64解密
 	 * 
-	 * @param decodeStr	加密后的字符串
-	 * @return	解密后的字符串
+	 * 	@param decodeStr	加密后的字符串
+	 * 	@return	解密后的字符串
 	 */
 	public static byte[] decodeByteByBase64(String decodeStr) {
 		

@@ -4,11 +4,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 /**
- * 计时器类
- * 用来即使重发时间，
- * 如果在指定时间内还没有接收到数据则重发数据
- * 如果在时间内接收到数据则停止计时器
- * @author Administrator
+ * 	计时器类
+ * 	用来即使重发时间，
+ * 	如果在指定时间内还没有接收到数据则重发数据
+ * 	如果在时间内接收到数据则停止计时器
+ * 	@author Administrator
  *
  */
 public class CountDown {
@@ -20,8 +20,7 @@ public class CountDown {
 		this.curSec = limitSec;
 		this.responseFlag = responseFlag;
 		//System.out.println("count down from "+limitSec+" s ");
-		// 如果在进入计时器之前就没有收到响应则不进计时器，否则不尽兴计时
-		if(!responseFlag) {
+		if(!responseFlag) {																			// 如果在进入计时器之前就没有收到响应则不进计时器，否则不尽兴计时
 			Timer timer = new Timer();
 			timer.schedule(new TimerTask(){
 				public void run(){
@@ -34,10 +33,6 @@ public class CountDown {
 			TimeUnit.SECONDS.sleep(limitSec);
 			timer.cancel();
 		}
-		
-		//System.out.println("1234");
-		
-		//System.out.println("Time is out!");
 	}
 
 }

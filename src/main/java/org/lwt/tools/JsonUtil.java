@@ -8,11 +8,11 @@ import com.alibaba.fastjson.JSONObject;
 
 public class JsonUtil {
 	/**
-	 * 解析传递的json字符串为Map对象
+	 * 	解析传递的json字符串为Map对象
 	 * 
 	 * 
-	 * @param jsonStr	json字符串
-	 * @return	Map,	由json字符串解析得到的map对象
+	 * 	@param jsonStr	json字符串
+	 * 	@return	Map,	由json字符串解析得到的map对象
 	 */
 	public static Map<String, Object> getMapFromJson(String jsonStr){
 		//Gson gson = new Gson();
@@ -26,10 +26,10 @@ public class JsonUtil {
 		return map;
 	}
 	/**
-	 * 将map对象转换为一个json字符串
+	 * 	将map对象转换为一个json字符串
 	 * 
-	 * @param map	待转换的map对象
-	 * @return		返回map 对应得json字符串
+	 * 	@param map	待转换的map对象
+	 * 	@return		返回map 对应得json字符串
 	 */
 	public static String getJsonFromMap(Map<String, Object> map) {
 		/*Gson gson = new Gson();

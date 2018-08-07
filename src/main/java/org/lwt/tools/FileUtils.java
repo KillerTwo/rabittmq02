@@ -37,7 +37,11 @@ import org.apache.commons.io.IOUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-
+/**
+ * 	文件操作类
+ * 	@author Administrator
+ *
+ */
 public class FileUtils {
 	
 	private static MessageDigest mMessageDigest = null;
@@ -125,15 +129,21 @@ public class FileUtils {
 			strs[i] = ""+i*10;
 		}
 		System.out.println(strs.length);*/
-		String path = "C:\\Users\\Administrator\\Documents\\test\\mysql.zip";
-		//String path = "E:\\package\\myeclipse-2017-2.0-offline-installer-windows.exe";
+		String path = "C:\\Users\\Administrator\\Documents\\test\\test03.txt";
+		String path01 = "E:\\package\\test03.txt";
 		File file01 = new File("C:\\Users\\Administrator\\Documents\\test\\recv\\mysql.zip");
 		
 		File file = new File(path);
+		
+		FileInputStream fi = new FileInputStream(file);
+		byte[] buffer = new byte[(int) file.length()];
+		System.out.println(file.length());
+		File file02 = bytes2File(buffer,path01, "test03.txt");
+		System.out.println(file02.length());
 		/*FileInputStream in = new FileInputStream(file);
 		ByteBuffer[] buffers = ByteBuffer.allocate(capacity);*/
 		
-		String md51 = DigestUtils.md5Hex(new FileInputStream(file));
+		/*String md51 = DigestUtils.md5Hex(new FileInputStream(file));
 		List<byte[]> list = splitDemo(file);
 		RandomAccessFile randomFile = new RandomAccessFile(file01,"rw");
 		FileChannel inChannel = new RandomAccessFile(file, "r").getChannel();
@@ -148,7 +158,7 @@ public class FileUtils {
 			i--;
 		}
 		randomFile.close();
-		/*try(FileChannel in = new FileInputStream(file).getChannel();
+		try(FileChannel in = new FileInputStream(file).getChannel();
 				FileChannel out = new FileOutputStream(file01).getChannel()){
 			MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0, in.size());
 			out.write(buf);
@@ -161,14 +171,14 @@ public class FileUtils {
 			
 		}catch(Exception e) {
 			e.printStackTrace();
-		}*/
+		}
 		
 		
 		long endTime = System.currentTimeMillis();
 		System.out.println("写入文件花费的时间是："+(endTime-startTime));	
 			
 		
-		/*for (byte[] bs : list) {
+		for (byte[] bs : list) {
 			
 			write2File(file01, bs, i, 1024);
 			i++;
@@ -241,15 +251,15 @@ public class FileUtils {
 			System.out.println(Base64.getDecoder().decode(sourceData));
 			write2File(file01, Base64.getDecoder().decode(sourceData));
 			i++;
-		}*/
+		}
 		
-		/*System.out.println(list.size());
+		System.out.println(list.size());
 		for (byte[] bs : list) {
 			write2File(file01, bs);
-		}*/
+		}
 		String md52 = DigestUtils.md5Hex(new FileInputStream(file01));
 		System.out.println("md51= "+md51);
-		System.out.println("md52= "+md52);
+		System.out.println("md52= "+md52);*/
 		/*String str = "{\"age\":\"24\",\"name\":\"cool_summer_moon\"}";
 	    JSONObject  jsonObject = JSONObject.parseObject(str);
 	    //json对象转Map
@@ -261,20 +271,25 @@ public class FileUtils {
 		//org.apache.commons.io.FileUtils
 		
 	}
-	
+	/**
+	 * 	关闭MappedByteBUffer
+	 * 	@param buffer
+	 */
 	private static void clean(final MappedByteBuffer buffer) {
 		if (buffer == null) {
 			return;
 		}
 		buffer.force();
-		AccessController.doPrivileged(new PrivilegedAction<Object>() {							//Privileged特权
+		AccessController.doPrivileged(new PrivilegedAction<Object>() {								//Privileged特权
 			@Override
 			public Object run() {
 				try {
 					// System.out.println(buffer.getClass().getName());
-					Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
+					Method getCleanerMethod = buffer.getClass().
+							getMethod("cleaner", new Class[0]);
 					getCleanerMethod.setAccessible(true);
-					sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
+					sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.
+							invoke(buffer, new Object[0]);
 					cleaner.clean();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -282,25 +297,19 @@ public class FileUtils {
 				return null;
 			}
 		});
-
-		
 	}
 
 	/**
-	 * 自定义获取md5值
-	 * @param file
-	 * @return 加密后的字符串
+	 * 	自定义获取md5值
+	 * 	@param file
+	 * 	@return 指定文件的md5值
 	 */
 	public static String getFileMD5String(File file) {
-		
 		 try {
 		        mMessageDigest = MessageDigest.getInstance("MD5");
 		    } catch (NoSuchAlgorithmException e) {
-		        // TODO Auto-generated catch block
 		        e.printStackTrace();
 		}
-
-		
         try {
             InputStream fis = new FileInputStream(file);
             byte[] buffer = new byte[1024];
@@ -317,22 +326,17 @@ public class FileUtils {
 	}
 	
 	/**
-	 * 自定义获取md5值
-	 * @param file
-	 * @return 加密后的字符串
+	 * 	自定义获取md5值
+	 * 	@param file
+	 * 	@return 加密后的字符串
 	 */
 	public static String getFileMD5String(List<byte[]> bytes) {
-		
 		 try {
 		        mMessageDigest = MessageDigest.getInstance("MD5");
 		    } catch (NoSuchAlgorithmException e) {
-		        
 		        e.printStackTrace();
 		}
-
-		
         try {
-        	
             for (byte[] bs : bytes) {
             	mMessageDigest.update(bs);
 			}
@@ -344,7 +348,6 @@ public class FileUtils {
 	}
 	
 	/****************************************/
-	
 	public static String hello(File file) {
 		System.out.println("hello");
 		FileInputStream in = null;
@@ -369,20 +372,18 @@ public class FileUtils {
 	
 	/**
 	 * 
-	 * 分割文件
+	 * 	分割文件
 	 * 
-	 * 返回一个包含字节数组的list
-	 * @throws IOException
+	 * 	返回一个包含字节数组的list
+	 * 	@throws IOException
 	 */
-	public static List<byte[]> splitDemo(File sourceFile)throws IOException
+	public static List<byte[]> splitDemo(File sourceFile)
+			throws IOException
     {
 		
 		/*****************************************/
         FileInputStream fis = new FileInputStream(sourceFile);
-        //FileChannel inChannel = fis.getChannel();
-        
-        //MappedByteBuffer mapped = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
-        byte[] buf = new byte[1024];	//将文件分割成1k大小的碎片
+        byte[] buf = new byte[1024];										//将文件分割成1k大小的碎片
         List<byte[]> packList = new ArrayList<>();
         
        
@@ -419,26 +420,28 @@ public class FileUtils {
         //clean(mapped); 		//关闭mappedbytebuffer
         return packList;
     }
+	
 	/**
-	 * 合并文件
+	 * 	合并文件
 	 * 
 	 * 
-	 * @throws IOException
+	 * 	@throws IOException
 	 */
 	public static void sequenceDemo()throws IOException
     {
         FileInputStream fis = null;
         FileOutputStream fos = new FileOutputStream("2.avi");
-        ArrayList<FileInputStream> al = new ArrayList<FileInputStream>();//Vector效率低 
+        ArrayList<FileInputStream> al = new ArrayList<FileInputStream>();	//Vector效率低 
         int count = 0;
-        File dir = new File("split");//利用File遍历文件夹下的文件
+        File dir = new File("split");										//利用File遍历文件夹下的文件
         File[] files = dir.listFiles();
         for(int x=0;x<files.length;x++)
         {
             al.add(new FileInputStream(files[x]));
         }
-        final Iterator<FileInputStream> it = al.iterator();//ArrayList本身没有枚举方法，通过迭代器来实现
-        Enumeration<FileInputStream>  en= new Enumeration<FileInputStream>()//匿名内部类，复写枚举接口下的两个方法
+        final Iterator<FileInputStream> it = al.iterator();					//ArrayList本身没有枚举方法，通过迭代器来实现
+        Enumeration<FileInputStream>  en= 
+        		new Enumeration<FileInputStream>()							//匿名内部类，复写枚举接口下的两个方法
         {
             public boolean hasMoreElements(){
                 return it.hasNext();
@@ -450,7 +453,7 @@ public class FileUtils {
             
         };
         SequenceInputStream sis = new SequenceInputStream(en);
-        byte[] buf = new byte[1024*1024];	//定义1M的缓存区
+        byte[] buf = new byte[1024*1024];									//定义1M的缓存区
         while((count=sis.read(buf))!=-1)
         {
             fos.write(buf,0,count);
@@ -460,11 +463,11 @@ public class FileUtils {
     }
 	
 	/**
-	 * 获取文件大小
+	 * 	获取文件大小
 	 * 
 	 * 
-	 * @param file需要获取的文件的大小
-	 * @return	long 文件大小
+	 * 	@param file需要获取的文件的大小
+	 * 	@return	long 文件大小
 	 */
 	public static long getFileSize(File file) {
 		FileChannel fileChannel = null;
@@ -492,20 +495,18 @@ public class FileUtils {
 		}
 		return -1;
 	}
+	
 	/**
-	 * 写入文件（以追加的方式写入）
-	 * @param file		目标文件file对象
-	 * @param bytes 	待写入的文件字节数组
+	 * 	写入文件（以追加的方式写入）
+	 * 	@param file		目标文件file对象
+	 * 	@param bytes 	待写入的文件字节数组
 	 */
 	public static void write2File(File file, byte[] bytes) {   
         RandomAccessFile randomFile = null;  
         try {     
-            // 打开一个随机访问文件流，按读写方式     
-            randomFile = new RandomAccessFile(file, "rw");     
-            // 文件长度，字节数     
-            long fileLength = randomFile.length();     
-            // 将写文件指针移到文件尾。     
-            randomFile.seek(fileLength);
+            randomFile = new RandomAccessFile(file, "rw");     				// 打开一个随机访问文件流，按读写方式     
+            long fileLength = randomFile.length();     						// 文件长度，字节数 
+            randomFile.seek(fileLength);									// 将写文件指针移到文件尾。     
             randomFile.write(bytes);
             //randomFile.writeBytes(content);      
         } catch (IOException e) {     
@@ -522,23 +523,23 @@ public class FileUtils {
     }
 	
 	/**
-	 * 写入文件（以追加的方式写入），将文件写入到指定的位置
-	 * @param file		目标文件file对象
-	 * @param bytes 	待写入的文件字节数组
-	 * @param packnum	当前是第几个包，从0开始计数
-	 * @param packSize	每个包的大小，单位为字节
+	 * 	写入文件（以追加的方式写入），将文件写入到指定的位置
+	 * 	@param file		目标文件file对象
+	 * 	@param bytes 	待写入的文件字节数组
+	 * 	@param packnum	当前是第几个包，从0开始计数
+	 * 	@param packSize	每个包的大小，单位为字节
 	 */
-	public static void write2File(File file, byte[] bytes, int packnum, long packSize) {   
+	public static void write2File(File file, byte[] bytes, 
+			int packnum, long packSize) {   
         RandomAccessFile randomFile = null; 
         long filePointer = 0;
         try {     
-            // 打开一个随机访问文件流，按读写方式     
-            randomFile = new RandomAccessFile(file, "rw");     
+                 
+            randomFile = new RandomAccessFile(file, "rw");    				// 打开一个随机访问文件流，按读写方式 
             filePointer = packnum * packSize;
-            // 将写文件指针移到filePointer为进行文件写入。     
-            randomFile.seek(filePointer);
+            
+            randomFile.seek(filePointer);									// 将写文件指针移到filePointer为进行文件写入。     
             randomFile.write(bytes);
-            //randomFile.writeBytes(content);      
         } catch (IOException e) {     
             e.printStackTrace();     
         } finally{  
@@ -553,30 +554,26 @@ public class FileUtils {
     }
 	
 	/**
-	 * 写入文件（以追加的方式写入），将文件写入到指定的位置
-	 * @param file		目标文件file对象
-	 * @param bytes 	待写入的文件字节数组
-	 * @param packnum	当前是第几个包，从0开始计数
-	 * @param packSize	每个包的大小，单位为字节
+	 * 	写入文件（以追加的方式写入），将文件写入到指定的位置
+	 * 	@param randomFile		目标文件RandomAccessFile对象
+	 * 	@param bytes 	待写入的文件字节数组
+	 * 	@param packnum	当前是第几个包，从0开始计数
+	 * 	@param packSize	每个包的大小，单位为字节
 	 */
-	public static void writeToFile(RandomAccessFile randomFile, byte[] bytes, int packnum, long packSize) {   
-        //RandomAccessFile randomFile = null; 
+	public static void writeToFile(RandomAccessFile randomFile,
+			byte[] bytes, int packnum, long packSize) {   
         FileChannel channel = null;
         long filePointer = 0;
         try {     
-            // 打开一个随机访问文件流，按读写方式     
-            //randomFile = new RandomAccessFile(file, "rw");
             channel = randomFile.getChannel();
             ByteBuffer buffer = ByteBuffer.allocate(1024);
             
             buffer.put(bytes);
             buffer.flip();
             filePointer = packnum * packSize;
-            // 将写文件指针移到filePointer为进行文件写入。     
-            randomFile.seek(filePointer);
+            
+            randomFile.seek(filePointer);									// 将写文件指针移到filePointer为进行文件写入。     	
             channel.write(buffer);
-            //randomFile.write(bytes);
-            //randomFile.writeBytes(content);      
         } catch (IOException e) {     
             e.printStackTrace();     
         } finally{
@@ -587,70 +584,53 @@ public class FileUtils {
 					e.printStackTrace();
 				}
         	}
-           /* if(randomFile != null){  
-                try {  
-                    randomFile.close();  
-                } catch (IOException e) {  
-                    e.printStackTrace();  
-                }  
-            }  */
         }  
     }
 	
-	
-	
-	
+	/**
+	 * 	写入文件
+	 * @param sourceFile	源文件File对象
+	 * @param targetFile	目标文件File对象
+	 */
 	public static void writeToFile(File sourceFile, File targetFile) {
 		BufferedInputStream in = null;
 		BufferedOutputStream out = null;
 		try {
 			in = new BufferedInputStream(new FileInputStream(sourceFile));
-			 
 	        out = new BufferedOutputStream(new FileOutputStream(targetFile));
-	        
 	        byte[] bytes = new byte[1024];
-	       
 	        int n = -1;
-	       
 	        while ((n = in.read(bytes,0,bytes.length)) != -1) {
-	         
 	            String str = new String(bytes,0,n,"utf-8");
-	           
 	            out.write(bytes, 0, n);
 	        }
 		} catch (Exception e) {
-			
 			e.printStackTrace();
 		}finally {
-			
 	        try {
 				out.flush();
 			} catch (IOException e) {
-				
 				e.printStackTrace();
 			}
-	       
 	        try {
 				in.close();
 			} catch (IOException e) {
-				
 				e.printStackTrace();
 			}
 	        try {
 				out.close();
 			} catch (IOException e) {
-				
 				e.printStackTrace();
 			}
 		}
-       
-		
-        
 	}
 	
-	
+	/**
+	 * 
+	 * @param bytes		源文件的字节数组
+	 * @param targetFile	目标文件File对象
+	 */
 	public static void writeToFile(byte[] bytes, File targetFile) {
-		
 		BufferedOutputStream out = null;
 		try {
 	        out = new BufferedOutputStream(new FileOutputStream(targetFile));
@@ -665,8 +645,6 @@ public class FileUtils {
 				
 				e.printStackTrace();
 			}
-	       
-	       
 	        try {
 				out.close();
 			} catch (IOException e) {
@@ -674,11 +652,53 @@ public class FileUtils {
 				e.printStackTrace();
 			}
 		}
-       
-		
-        
 	}
-	
+	/**
+	 * 将字节数组转换为File对象
+	 * @param bytes
+	 * @return File对象
+	 */
+	public static File bytes2File(byte[] bytes, String path, String fileName) {
+		File file = new File(path+fileName);
+		if(!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		OutputStream output = null;
+		BufferedOutputStream bufferedOutput = null;
+		try {
+			output = new FileOutputStream(file);
+			bufferedOutput = new BufferedOutputStream(output);
+			bufferedOutput.write(bytes);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				if(bufferedOutput != null) {
+					bufferedOutput.close();
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			try {
+				if(output != null) {
+					output.close();
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return file;
+
+		
+	}
 	
 	
 }
