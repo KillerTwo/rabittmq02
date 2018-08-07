@@ -17,6 +17,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.security.AccessController;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -137,6 +138,7 @@ public class FileUtils {
 		
 		FileInputStream fi = new FileInputStream(file);
 		byte[] buffer = new byte[(int) file.length()];
+		byte[] buffer1 = toByteArray(path);
 		System.out.println(file.length());
 		File file02 = bytes2File(buffer,path01, "test03.txt");
 		System.out.println(file02.length());
@@ -271,6 +273,42 @@ public class FileUtils {
 		//org.apache.commons.io.FileUtils
 		
 	}
+	
+	/** 
+	 * 读取整个文件到byte[]中
+     * Mapped File way MappedByteBuffer 可以在处理大文件时，提升性能 
+     *  
+     * @param filename 
+     * @return 
+     * @throws IOException 
+     */  
+    public static byte[] toByteArray(String filename) throws IOException {  
+  
+        FileChannel fc = null;  
+        try {  
+            fc = new RandomAccessFile(filename, "r").getChannel();  
+            MappedByteBuffer byteBuffer = fc.map(MapMode.READ_ONLY, 0,  
+                    fc.size()).load();  
+            System.out.println(byteBuffer.isLoaded());  
+            byte[] result = new byte[(int) fc.size()];  
+            if (byteBuffer.remaining() > 0) {  
+                byteBuffer.get(result, 0, byteBuffer.remaining());  
+            }  
+            return result;  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+            throw e;  
+        } finally {  
+            try {  
+                fc.close();  
+            } catch (IOException e) {  
+                e.printStackTrace();  
+            }  
+        }  
+    }  
+
+	
+	
 	/**
 	 * 	关闭MappedByteBUffer
 	 * 	@param buffer
@@ -659,6 +697,9 @@ public class FileUtils {
 	 * @return File对象
 	 */
 	public static File bytes2File(byte[] bytes, String path, String fileName) {
+		if(!new File(path).exists()) {
+			new File(path).mkdirs();
+		}
 		File file = new File(path+fileName);
 		if(!file.exists()) {
 			try {
