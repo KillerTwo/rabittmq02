@@ -15,7 +15,7 @@ public interface UpLoadFile {
 	 */
 	boolean sendData(@WebParam(name="file") String file, String fileName) throws Exception;
 	
-	void receiver(@WebParam(name="file") String file, String fileName) throws Exception;
+	void receiver(@WebParam(name="file") String file) throws Exception;
 	
 	void recv(String path, String fileName) throws Exception;
 }
